@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from tipo_solicitudes.models import Solicitud, SeguimientoSolicitud, User
+from tipo_solicitudes.models import Solicitud, SeguimientoSolicitud
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 # csrf_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse

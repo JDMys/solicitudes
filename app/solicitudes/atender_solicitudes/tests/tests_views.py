@@ -1,6 +1,6 @@
 import json
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
@@ -9,6 +9,7 @@ from tipo_solicitudes.models import Solicitud, TipoSolicitud, SeguimientoSolicit
 
 class AtenderSolicitudesViewsTests(TestCase):
     def setUp(self):
+        User = get_user_model()
         # Usuario "responsable"
         self.usuario = User.objects.create_user(
             username="responsable", password="pass1234"
