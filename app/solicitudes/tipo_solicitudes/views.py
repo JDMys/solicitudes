@@ -5,7 +5,7 @@ import io
 import json
 from django.http import HttpResponse
 from django.db.models import Count
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -15,9 +15,10 @@ from reportlab.lib.enums import TA_CENTER
 import matplotlib
 matplotlib.use('Agg')  # Backend sin GUI
 import matplotlib.pyplot as plt
-from .forms import FormArchivoAdjunto, FormFormularioSolicitud, FormSolicitud, FormTipoSolicitud
+from .forms import FormArchivoAdjunto, FormCampoFormulario, FormFormularioSolicitud, FormSolicitud, FormTipoSolicitud
 from .models import ESTATUS, RESPOSABLES, SeguimientoSolicitud, Solicitud, TipoSolicitud, ArchivoAdjunto, CampoFormulario, FormularioSolicitud, RespuestaCampo
 from .funcionalidad import FuncionesAvanzadas
+from django.db.models import Max
 
 def bienvenida(request):
     return render(request, 'bienvenida.html')
@@ -315,3 +316,39 @@ def crear_o_editar_formulario(request, pk=None):
         'instancia': instancia,
     }
     return render(request, 'crear_formulario_solicitud.html', context)
+
+def crear_campos(request, formulario_id):
+    formulario = get_object_or_404(FormularioSolicitud, pk=formulario_id)
+
+    if request.method == "POST":
+        form = FormCampoFormulario(request.POST, formulario=formulario)
+        if form.is_valid():
+            nuevo_campo = form.save(commit=False)
+            nuevo_campo.formulario = formulario
+
+            # Si el usuario no pone orden o pone 0 → poner al final
+            if not nuevo_campo.orden or nuevo_campo.orden == 0:
+                max_orden = formulario.campos.aggregate(Max('orden'))['orden__max'] or 0
+                nuevo_campo.orden = max_orden + 1
+
+            nuevo_campo.save()
+            return redirect('crear_campos', formulario_id=formulario.id)
+
+    else:
+        form = FormCampoFormulario(formulario=formulario)
+
+    campos_existentes = formulario.campos.all().order_by('orden')
+
+    return render(request, 'preguntas_formulario.html', {
+        'form': form,
+        'formulario': formulario,
+        'campos': campos_existentes,
+    })
+
+
+
+def eliminar_campo(request, campo_id):
+    campo = get_object_or_404(CampoFormulario, pk=campo_id)
+    formulario_id = campo.formulario.id
+    campo.delete()
+    return redirect('crear_campos', formulario_id=formulario_id)
