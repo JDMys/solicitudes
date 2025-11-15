@@ -1,3 +1,8 @@
 from django.contrib import admin
+from .models import (
+    TipoSolicitud,
+    Solicitud
+)
 
-# Register your models here.
+admin.site.register(TipoSolicitud)
+admin.site.register(Solicitud)

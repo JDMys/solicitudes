@@ -59,3 +59,5 @@ class TestSmokeTest(TestCase):
         except ValidationError as ex:
             msg = ex.message_dict['nombre'][0]
             self.assertEqual('Asegúrese de que este valor tenga como máximo 150 caracteres (tiene 169).', msg)
+
+    

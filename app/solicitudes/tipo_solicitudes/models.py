@@ -56,7 +56,7 @@ class Solicitud(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.folio} - {self.tipo_ticket}"
+        return f"{self.folio}" #aqui irian los ticke, SI TUVIERA UNO
 
 class RespuestaCampo(models.Model):
     solicitud = models.ForeignKey(Solicitud, on_delete=models.CASCADE, related_name='respuestas')

@@ -1,3 +1,5 @@
 Django
 mysqlclient
 pillow
+reportlab
+matplotlib
