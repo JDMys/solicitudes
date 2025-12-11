@@ -10,20 +10,6 @@ from solicitudes_app.forms import (
     GestionarUsuarioForm
 )
 
-# === Contenido de test_forms_extra.py ===
-
-"""
-Tests unitarios adicionales para formularios de solicitudes_app (DSM5)
-Casos edge y validaciones complejas
-"""
-from django.test import TestCase
-from solicitudes_app.models import Usuario
-from solicitudes_app.forms import (
-    RegistroUsuarioForm,
-    ActualizarPerfilForm,
-    GestionarUsuarioForm
-)
-
 
 class RegistroUsuarioFormEdgeCasesTest(TestCase):
     """Tests de casos edge para RegistroUsuarioForm"""
@@ -73,14 +59,14 @@ class RegistroUsuarioFormEdgeCasesTest(TestCase):
         self.assertFalse(form.is_valid())
 
     def test_alumno_sin_matricula_invalido(self):
-        """Alumno debe tener matrÃ­cula"""
+        """Alumno debe tener matri­cula"""
         form_data = {
             'username': 'alumno1',
             'email': 'alumno@test.com',
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pi©rez',
             'rol': 'alumno',
-            'matricula': '',  # VacÃ­o
+            'matricula': '',  # Vaci­o
             'password1': 'testpass123!',
             'password2': 'testpass123!'
         }
@@ -105,7 +91,7 @@ class RegistroUsuarioFormEdgeCasesTest(TestCase):
         self.assertFalse(form.is_valid())
 
     def test_password_muy_corta(self):
-        """Password muy corta debe ser invÃ¡lida"""
+        """Password muy corta debe ser invalida"""
         form_data = {
             'username': 'user1',
             'email': 'user@test.com',
@@ -120,7 +106,7 @@ class RegistroUsuarioFormEdgeCasesTest(TestCase):
         self.assertFalse(form.is_valid())
 
     def test_passwords_no_coinciden(self):
-        """Passwords que no coinciden deben ser invÃ¡lidas"""
+        """Passwords que no coinciden deben ser invalidas"""
         form_data = {
             'username': 'user1',
             'email': 'user@test.com',
@@ -135,7 +121,7 @@ class RegistroUsuarioFormEdgeCasesTest(TestCase):
         self.assertFalse(form.is_valid())
 
     def test_email_formato_invalido(self):
-        """Email con formato invÃ¡lido debe fallar"""
+        """Email con formato invalido debe fallar"""
         form_data = {
             'username': 'user1',
             'email': 'email_invalido',
@@ -167,7 +153,6 @@ class RegistroUsuarioFormEdgeCasesTest(TestCase):
 
     def test_todos_los_roles_validos(self):
         """RegistroUsuarioForm solo permite rol alumno"""
-        # RegistroUsuarioForm is for public registration and only allows alumno role
         form_data = {
             'username': 'user_alumno',
             'email': 'alumno@test.com',
@@ -180,18 +165,20 @@ class RegistroUsuarioFormEdgeCasesTest(TestCase):
         }
         form = RegistroUsuarioForm(data=form_data)
         self.assertTrue(form.is_valid(),
-                        f"Rol alumno deberÃ­a ser vÃ¡lido: {form.errors}")
+                        f"Rol alumno deberi­a ser valido: {form.errors}")
 
 
 class ActualizarPerfilFormTest(TestCase):
     """Tests para ActualizarPerfilForm"""
 
     def test_formulario_valido_alumno(self):
-        """Formulario vÃ¡lido para alumno con matrÃ­cula"""
+        """Formulario valido para alumno con matri­cula"""
         form_data = {
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pérez',
+            'email': 'alumno@test.com',
             'telefono': '4921234567',
+            'area': '',
             'matricula': '12345'
         }
         usuario = Usuario.objects.create_user(
@@ -201,10 +188,12 @@ class ActualizarPerfilFormTest(TestCase):
             rol='alumno'
         )
         form = ActualizarPerfilForm(data=form_data, instance=usuario)
+        if not form.is_valid():
+            print(f"Form errors: {form.errors}")
         self.assertTrue(form.is_valid())
 
     def test_formulario_valido_no_alumno_sin_matricula(self):
-        """No alumno puede completar perfil sin matrÃ­cula"""
+        """No alumno puede completar perfil sin matri­cula"""
         form_data = {
             'first_name': 'Control',
             'last_name': 'Escolar',
@@ -221,12 +210,11 @@ class ActualizarPerfilFormTest(TestCase):
         self.assertTrue(form.is_valid())
 
     def test_campos_requeridos_presentes(self):
-        """Campos no requeridos pueden estar vacÃ­os en ActualizarPerfilForm"""
-        # ActualizarPerfilForm allows blank values for most fields
+        """Campos no requeridos pueden estar vaci­os en ActualizarPerfilForm"""
         form_data = {
-            'first_name': 'Juan',  # Required by Django User model
-            'last_name': 'PÃ©rez',  # Required by Django User model
-            'telefono': ''  # Optional
+            'first_name': 'Juan',  
+            'last_name': 'Perez',
+            'telefono': ''
         }
         usuario = Usuario.objects.create_user(
             username='user1',
@@ -238,10 +226,10 @@ class ActualizarPerfilFormTest(TestCase):
         self.assertTrue(form.is_valid())
 
     def test_telefono_formato_valido(self):
-        """TelÃ©fono debe tener formato vÃ¡lido"""
+        """Teli©fono debe tener formato valido"""
         form_data = {
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pi©rez',
             'telefono': '49212345',  # Muy corto
             'matricula': '12345'
         }
@@ -252,8 +240,8 @@ class ActualizarPerfilFormTest(TestCase):
             rol='alumno'
         )
         form = ActualizarPerfilForm(data=form_data, instance=usuario)
-        # Puede ser vÃ¡lido dependiendo de la validaciÃ³n implementada
-        # Este test verifica que el form maneja telÃ©fonos
+        # Puede ser valido dependiendo de la validacii³n implementada
+        # Este test verifica que el form maneja teli©fonos
 
 
 class PasswordFormTest(TestCase):
@@ -269,7 +257,7 @@ class PasswordFormTest(TestCase):
 
     def test_usuario_puede_cambiar_password(self):
         """Usuario puede cambiar su password"""
-        # Test de integraciÃ³n usando la vista
+        # Test de integracii³n usando la vista
         self.assertTrue(self.usuario.check_password('oldpass123'))
 
 
@@ -277,7 +265,7 @@ class GestionarUsuarioFormTest(TestCase):
     """Tests para GestionarUsuarioForm"""
 
     def test_editar_usuario_valido(self):
-        """Editar usuario con datos vÃ¡lidos"""
+        """Editar usuario con datos validos"""
         usuario = Usuario.objects.create_user(
             username='user1',
             email='user@test.com',
@@ -366,7 +354,7 @@ class GestionarUsuarioFormTest(TestCase):
 
 
 class FormularioPermisosPorRolTest(TestCase):
-    """Tests para verificar permisos segÃºn roles en formularios"""
+    """Tests para verificar permisos segiºn roles en formularios"""
 
     def test_solo_admin_puede_crear_admin(self):
         """Verificar que solo administradores pueden crear administradores"""
@@ -419,11 +407,6 @@ class FormularioPermisosPorRolTest(TestCase):
         self.assertFalse(alumno.puede_crear_tipo_solicitud())
 
 
-# === Contenido de test_forms_coverage.py ===
-
-"""
-Tests adicionales para mejorar cobertura de forms.py (DSM5)
-"""
 from django.test import TestCase
 from solicitudes_app.forms import (
     RegistroUsuarioForm,
@@ -437,12 +420,12 @@ class RegistroUsuarioFormCoverageTest(TestCase):
     """Tests adicionales para RegistroUsuarioForm"""
 
     def test_validacion_email_formato_invalido(self):
-        """Email con formato invÃ¡lido debe fallar"""
+        """Email con formato invalido debe fallar"""
         form = RegistroUsuarioForm(data={
             'username': 'user1',
             'email': 'emailinvalido',
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pi©rez',
             'rol': 'alumno',
             'matricula': '12345',
             'password1': 'Testpass123!',
@@ -463,7 +446,7 @@ class RegistroUsuarioFormCoverageTest(TestCase):
             'username': 'newuser',
             'email': 'existing@test.com',
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pi©rez',
             'rol': 'alumno',
             'matricula': '12345',
             'password1': 'Testpass123!',
@@ -478,7 +461,7 @@ class RegistroUsuarioFormCoverageTest(TestCase):
             'username': 'usr',
             'email': 'user@test.com',
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pi©rez',
             'rol': 'alumno',
             'matricula': '12345',
             'password1': 'Testpass123!',
@@ -493,7 +476,7 @@ class RegistroUsuarioFormCoverageTest(TestCase):
             'username': 'user@name',
             'email': 'user@test.com',
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pi©rez',
             'rol': 'alumno',
             'matricula': '12345',
             'password1': 'Testpass123!',
@@ -514,7 +497,7 @@ class RegistroUsuarioFormCoverageTest(TestCase):
             'username': 'existing',
             'email': 'new@test.com',
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pi©rez',
             'rol': 'alumno',
             'matricula': '12345',
             'password1': 'Testpass123!',
@@ -524,12 +507,12 @@ class RegistroUsuarioFormCoverageTest(TestCase):
         self.assertIn('username', form.errors)
 
     def test_validacion_matricula_requerida_para_alumno(self):
-        """Alumno debe tener matrÃ­cula"""
+        """Alumno debe tener matri­cula"""
         form = RegistroUsuarioForm(data={
             'username': 'alumno1',
             'email': 'alumno@test.com',
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pi©rez',
             'rol': 'alumno',
             'matricula': '',
             'password1': 'Testpass123!',
@@ -539,12 +522,12 @@ class RegistroUsuarioFormCoverageTest(TestCase):
         self.assertIn('matricula', form.errors)
 
     def test_validacion_matricula_formato_invalido(self):
-        """MatrÃ­cula con formato invÃ¡lido debe fallar"""
+        """Matri­cula con formato invalido debe fallar"""
         form = RegistroUsuarioForm(data={
             'username': 'alumno1',
             'email': 'alumno@test.com',
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pi©rez',
             'rol': 'alumno',
             'matricula': 'ABC',
             'password1': 'Testpass123!',
@@ -554,7 +537,7 @@ class RegistroUsuarioFormCoverageTest(TestCase):
         self.assertIn('matricula', form.errors)
 
     def test_validacion_matricula_duplicada(self):
-        """MatrÃ­cula duplicada debe fallar"""
+        """Matri­cula duplicada debe fallar"""
         Usuario.objects.create_user(
             username='alumno1',
             email='alumno1@test.com',
@@ -566,7 +549,7 @@ class RegistroUsuarioFormCoverageTest(TestCase):
             'username': 'alumno2',
             'email': 'alumno2@test.com',
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pi©rez',
             'rol': 'alumno',
             'matricula': '12345',
             'password1': 'Testpass123!',
@@ -576,12 +559,12 @@ class RegistroUsuarioFormCoverageTest(TestCase):
         self.assertIn('matricula', form.errors)
 
     def test_validacion_telefono_formato_invalido(self):
-        """TelÃ©fono con formato invÃ¡lido debe fallar"""
+        """Teli©fono con formato invalido debe fallar"""
         form = RegistroUsuarioForm(data={
             'username': 'alumno1',
             'email': 'alumno@test.com',
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pi©rez',
             'rol': 'alumno',
             'matricula': '12345',
             'telefono': '123abc',
@@ -592,12 +575,12 @@ class RegistroUsuarioFormCoverageTest(TestCase):
         self.assertIn('telefono', form.errors)
 
     def test_validacion_password_sin_mayuscula(self):
-        """Password sin mayÃºscula debe fallar"""
+        """Password sin mayiºscula debe fallar"""
         form = RegistroUsuarioForm(data={
             'username': 'alumno1',
             'email': 'alumno@test.com',
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pi©rez',
             'rol': 'alumno',
             'matricula': '12345',
             'password1': 'testpass123!',
@@ -607,12 +590,12 @@ class RegistroUsuarioFormCoverageTest(TestCase):
         self.assertIn('password1', form.errors)
 
     def test_validacion_password_sin_numero(self):
-        """Password sin nÃºmero debe fallar"""
+        """Password sin niºmero debe fallar"""
         form = RegistroUsuarioForm(data={
             'username': 'alumno1',
             'email': 'alumno@test.com',
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pi©rez',
             'rol': 'alumno',
             'matricula': '12345',
             'password1': 'Testpassword!',
@@ -634,11 +617,11 @@ class ActualizarPerfilFormCoverageTest(TestCase):
         )
 
     def test_validacion_first_name_caracteres_invalidos(self):
-        """Nombre con caracteres invÃ¡lidos debe fallar"""
+        """Nombre con caracteres invalidos debe fallar"""
         form = ActualizarPerfilForm(
             data={
                 'first_name': 'Juan123',
-                'last_name': 'PÃ©rez',
+                'last_name': 'Pi©rez',
                 'email': 'user@test.com'
             },
             instance=self.usuario
@@ -647,11 +630,11 @@ class ActualizarPerfilFormCoverageTest(TestCase):
         self.assertIn('first_name', form.errors)
 
     def test_validacion_last_name_caracteres_invalidos(self):
-        """Apellido con caracteres invÃ¡lidos debe fallar"""
+        """Apellido con caracteres invalidos debe fallar"""
         form = ActualizarPerfilForm(
             data={
                 'first_name': 'Juan',
-                'last_name': 'PÃ©rez123',
+                'last_name': 'Pi©rez123',
                 'email': 'user@test.com'
             },
             instance=self.usuario
@@ -670,7 +653,7 @@ class ActualizarPerfilFormCoverageTest(TestCase):
         form = ActualizarPerfilForm(
             data={
                 'first_name': 'Juan',
-                'last_name': 'PÃ©rez',
+                'last_name': 'Pi©rez',
                 'email': 'otro@test.com'
             },
             instance=self.usuario
@@ -679,11 +662,11 @@ class ActualizarPerfilFormCoverageTest(TestCase):
         self.assertIn('email', form.errors)
 
     def test_validacion_telefono_formato_invalido(self):
-        """TelÃ©fono con formato invÃ¡lido debe fallar"""
+        """Teli©fono con formato invalido debe fallar"""
         form = ActualizarPerfilForm(
             data={
                 'first_name': 'Juan',
-                'last_name': 'PÃ©rez',
+                'last_name': 'Pi©rez',
                 'email': 'user@test.com',
                 'telefono': '123'
             },
@@ -693,11 +676,11 @@ class ActualizarPerfilFormCoverageTest(TestCase):
         self.assertIn('telefono', form.errors)
 
     def test_validacion_matricula_formato_invalido(self):
-        """MatrÃ­cula con formato invÃ¡lido debe fallar"""
+        """Matri­cula con formato invalido debe fallar"""
         form = ActualizarPerfilForm(
             data={
                 'first_name': 'Juan',
-                'last_name': 'PÃ©rez',
+                'last_name': 'Pi©rez',
                 'email': 'user@test.com',
                 'matricula': 'ABC'
             },
@@ -707,7 +690,7 @@ class ActualizarPerfilFormCoverageTest(TestCase):
         self.assertIn('matricula', form.errors)
 
     def test_validacion_matricula_duplicada(self):
-        """MatrÃ­cula duplicada debe fallar"""
+        """Matri­cula duplicada debe fallar"""
         Usuario.objects.create_user(
             username='otro',
             email='otro@test.com',
@@ -718,7 +701,7 @@ class ActualizarPerfilFormCoverageTest(TestCase):
         form = ActualizarPerfilForm(
             data={
                 'first_name': 'Juan',
-                'last_name': 'PÃ©rez',
+                'last_name': 'Pi©rez',
                 'email': 'user@test.com',
                 'matricula': '12345'
             },
@@ -752,7 +735,7 @@ class GestionarUsuarioFormCoverageTest(TestCase):
                 'username': 'otro',
                 'email': 'user@test.com',
                 'first_name': 'Juan',
-                'last_name': 'PÃ©rez',
+                'last_name': 'Pi©rez',
                 'rol': 'alumno',
                 'is_active': True
             },
@@ -774,7 +757,7 @@ class GestionarUsuarioFormCoverageTest(TestCase):
                 'username': 'user1',
                 'email': 'otro@test.com',
                 'first_name': 'Juan',
-                'last_name': 'PÃ©rez',
+                'last_name': 'Pi©rez',
                 'rol': 'alumno',
                 'is_active': True
             },
@@ -784,7 +767,7 @@ class GestionarUsuarioFormCoverageTest(TestCase):
         self.assertIn('email', form.errors)
 
     def test_validacion_matricula_duplicada(self):
-        """MatrÃ­cula duplicada debe fallar"""
+        """Matri­cula duplicada debe fallar"""
         Usuario.objects.create_user(
             username='otro',
             email='otro@test.com',
@@ -797,7 +780,7 @@ class GestionarUsuarioFormCoverageTest(TestCase):
                 'username': 'user1',
                 'email': 'user@test.com',
                 'first_name': 'Juan',
-                'last_name': 'PÃ©rez',
+                'last_name': 'Pi©rez',
                 'rol': 'alumno',
                 'matricula': '12345',
                 'is_active': True
@@ -807,8 +790,6 @@ class GestionarUsuarioFormCoverageTest(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('matricula', form.errors)
 
-
-# === Contenido de test_forms_complete.py ===
 
 """
 Tests adicionales para cobertura completa de forms.py (DSM5)
@@ -1080,8 +1061,6 @@ class GestionarUsuarioFormMatriculaInvalidTest(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('matricula', form.errors)
 
-
-# === Contenido de test_forms_validation_extra.py ===
 
 """
 Tests adicionales para cobertura de validaciones en forms.py (DSM5)

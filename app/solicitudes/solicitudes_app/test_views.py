@@ -1,6 +1,7 @@
 ﻿"""
 Tests unitarios consolidados para vistas de solicitudes_app (DSM5)
 Incluye tests de login, registro, perfil, gestión de usuarios y casos edge
+Cobertura para: editar_usuario, eliminar_usuario, completar_perfil, cambiar_password
 """
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -11,8 +12,6 @@ from solicitudes_app.forms import (
     ActualizarPerfilForm,
     GestionarUsuarioForm
 )
-
-# === Contenido de test_views_final.py ===
 
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -110,13 +109,6 @@ class CambiarPasswordSuccessRedirectTest(TestCase):
         })
         self.assertEqual(response.status_code, 302)
 
-
-# === Contenido de test_views_extra.py ===
-
-"""
-Tests unitarios adicionales para vistas de solicitudes_app (DSM5)
-Cobertura para: editar_usuario, eliminar_usuario, completar_perfil, cambiar_password
-"""
 from django.test import TestCase, Client
 from django.urls import reverse
 from solicitudes_app.models import Usuario
@@ -141,7 +133,7 @@ class EditarUsuarioViewTest(TestCase):
             password='testpass123',
             rol='alumno',
             first_name='Juan',
-            last_name='PÃ©rez',
+            last_name='Pa©rez',
             perfil_completo=True
         )
         self.editar_url = reverse(
@@ -166,13 +158,13 @@ class EditarUsuarioViewTest(TestCase):
         self.assertTrue('bienvenida' in response.url or response.url == '/')
 
     def test_editar_usuario_exitoso(self):
-        """EdiciÃ³n exitosa de usuario"""
+        """Edician exitosa de usuario"""
         self.client.login(username='admin1', password='testpass123')
         data = {
             'username': 'alumno1',
             'email': 'nuevo_email@test.com',
             'first_name': 'Juan',
-            'last_name': 'LÃ³pez',
+            'last_name': 'Lapez',
             'rol': 'alumno',
             'telefono': '4921234567',
             'is_active': True
@@ -180,10 +172,10 @@ class EditarUsuarioViewTest(TestCase):
         response = self.client.post(self.editar_url, data)
         self.assertEqual(response.status_code, 302)
 
-        # Verificar que se actualizÃ³
+        # Verificar que se actualiza
         self.alumno.refresh_from_db()
         self.assertEqual(self.alumno.email, 'nuevo_email@test.com')
-        self.assertEqual(self.alumno.last_name, 'LÃ³pez')
+        self.assertEqual(self.alumno.last_name, 'Lapez')
 
     def test_admin_no_puede_quitarse_rol_administrador(self):
         """Admin no puede quitarse su propio rol de administrador"""
@@ -203,7 +195,7 @@ class EditarUsuarioViewTest(TestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 200)
 
-        # Verificar que NO cambiÃ³ el rol
+        # Verificar que NO cambia el rol
         self.admin.refresh_from_db()
         self.assertEqual(self.admin.rol, 'administrador')
 
@@ -230,8 +222,8 @@ class EditarUsuarioViewTest(TestCase):
         self.assertTrue(self.admin.is_active)
 
     def test_no_puede_modificar_ultimo_admin(self):
-        """No se puede modificar el Ãºltimo administrador activo"""
-        # Este admin es el Ãºnico administrador activo
+        """No se puede modificar el aºltimo administrador activo"""
+        # Este admin es el aºnico administrador activo
         self.client.login(username='admin1', password='testpass123')
         url = reverse(
             'solicitudes_app:editar_usuario',
@@ -248,7 +240,7 @@ class EditarUsuarioViewTest(TestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 200)
 
-        # Verificar que NO cambiÃ³
+        # Verificar que NO cambia
         self.admin.refresh_from_db()
         self.assertEqual(self.admin.rol, 'administrador')
 
@@ -283,7 +275,7 @@ class EliminarUsuarioViewTest(TestCase):
         response = self.client.post(url)
         self.assertEqual(response.status_code, 302)
 
-        # Verificar que se eliminÃ³
+        # Verificar que se elimina
         self.assertFalse(
             Usuario.objects.filter(id=self.alumno.id).exists())
 
@@ -303,7 +295,7 @@ class EliminarUsuarioViewTest(TestCase):
         response = self.client.post(url)
         self.assertEqual(response.status_code, 302)
 
-        # Verificar que NO se eliminÃ³
+        # Verificar que NO se elimina
         self.assertTrue(Usuario.objects.filter(id=alumno2.id).exists())
 
     def test_admin_no_puede_eliminarse(self):
@@ -315,11 +307,11 @@ class EliminarUsuarioViewTest(TestCase):
         )
         response = self.client.post(url)
 
-        # Verificar que NO se eliminÃ³
+        # Verificar que NO se elimina
         self.assertTrue(Usuario.objects.filter(id=self.admin.id).exists())
 
     def test_no_puede_eliminar_ultimo_admin(self):
-        """No se puede eliminar el Ãºltimo administrador activo"""
+        """No se puede eliminar el aºltimo administrador activo"""
         # Crear segundo admin
         admin2 = Usuario.objects.create_user(
             username='admin2',
@@ -330,7 +322,7 @@ class EliminarUsuarioViewTest(TestCase):
 
         self.client.login(username='admin2', password='testpass123')
 
-        # Desactivar admin2 para que admin1 sea el Ãºltimo
+        # Desactivar admin2 para que admin1 sea el aºltimo
         admin2.is_active = False
         admin2.save()
 
@@ -345,11 +337,11 @@ class EliminarUsuarioViewTest(TestCase):
 
         response = self.client.post(url)
 
-        # Verificar que NO se eliminÃ³
+        # Verificar que NO se elimina
         self.assertTrue(Usuario.objects.filter(id=self.admin.id).exists())
 
     def test_solo_post_method_permitido(self):
-        """Solo mÃ©todo POST estÃ¡ permitido para eliminar"""
+        """Solo ma©todo POST esta¡ permitido para eliminar"""
         self.client.login(username='admin1', password='testpass123')
         url = reverse(
             'solicitudes_app:eliminar_usuario',
@@ -387,14 +379,16 @@ class CompletarPerfilViewTest(TestCase):
         self.client.login(username='user1', password='testpass123')
         data = {
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pérez',
+            'email': 'user1@test.com',
             'telefono': '4921234567',
+            'area': '',
             'matricula': '12345'
         }
         response = self.client.post(self.completar_url, data)
         self.assertEqual(response.status_code, 302)
 
-        # Verificar que se completÃ³
+        # Verificar que se completa
         self.usuario.refresh_from_db()
         self.assertTrue(self.usuario.perfil_completo)
         self.assertEqual(self.usuario.first_name, 'Juan')
@@ -413,8 +407,8 @@ class CompletarPerfilViewTest(TestCase):
         """Form processes even with empty required fields"""
         self.client.login(username='user1', password='testpass123')
         data = {
-            'first_name': '',  # Campo vacÃ­o
-            'last_name': 'PÃ©rez',
+            'first_name': '',  # Campo vacio
+            'last_name': 'Pa©rez',
             'telefono': '4921234567'
         }
         response = self.client.post(self.completar_url, data)
@@ -455,7 +449,7 @@ class CambiarPasswordViewTest(TestCase):
         response = self.client.post(self.cambiar_url, data)
         self.assertEqual(response.status_code, 302)
 
-        # Verificar que cambiÃ³
+        # Verificar que cambia
         self.usuario.refresh_from_db()
         self.assertFalse(self.usuario.debe_cambiar_password)
         self.assertTrue(self.usuario.check_password('Newpass456!'))
@@ -471,7 +465,7 @@ class CambiarPasswordViewTest(TestCase):
         response = self.client.post(self.cambiar_url, data)
         self.assertEqual(response.status_code, 200)
 
-        # Verificar que NO cambiÃ³
+        # Verificar que NO cambia
         self.usuario.refresh_from_db()
         self.assertTrue(self.usuario.check_password('oldpass123'))
 
@@ -486,7 +480,7 @@ class CambiarPasswordViewTest(TestCase):
         response = self.client.post(self.cambiar_url, data)
         self.assertEqual(response.status_code, 200)
 
-        # Verificar que NO cambiÃ³
+        # Verificar que NO cambia
         self.usuario.refresh_from_db()
         self.assertTrue(self.usuario.check_password('oldpass123'))
 
@@ -550,12 +544,6 @@ class MiddlewareTest(TestCase):
         response = self.client.get(reverse('bienvenida'))
         self.assertEqual(response.status_code, 200)
 
-
-# === Contenido de test_views_coverage.py ===
-
-"""
-Tests adicionales para mejorar cobertura de views.py (DSM5)
-"""
 from django.test import TestCase, Client
 from django.urls import reverse
 from solicitudes_app.models import Usuario
@@ -595,7 +583,7 @@ class LoginViewCoverageTest(TestCase):
         self.assertTrue(response.context['mostrar_credenciales_admin'])
 
     def test_no_muestra_credenciales_si_admin_cambio_password(self):
-        """No muestra credenciales si admin ya cambiÃ³ su password"""
+        """No muestra credenciales si admin ya cambia su password"""
         Usuario.objects.create_user(
             username='admin',
             email='admin@test.com',
@@ -608,7 +596,7 @@ class LoginViewCoverageTest(TestCase):
         self.assertFalse(response.context['mostrar_credenciales_admin'])
 
     def test_login_con_remember_me_false(self):
-        """Login sin remember_me configura sesiÃ³n temporal"""
+        """Login sin remember_me configura sesian temporal"""
         usuario = Usuario.objects.create_user(
             username='user1',
             email='user@test.com',
@@ -624,7 +612,7 @@ class LoginViewCoverageTest(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_login_con_next_url(self):
-        """Login redirige a next_url si estÃ¡ presente"""
+        """Login redirige a next_url si esta¡ presente"""
         usuario = Usuario.objects.create_user(
             username='user1',
             email='user@test.com',
@@ -643,9 +631,9 @@ class LoginViewCoverageTest(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_login_formulario_invalido_sin_all_errors(self):
-        """Login con formulario invÃ¡lido sin __all__ errors"""
+        """Login con formulario inva¡lido sin __all__ errors"""
         response = self.client.post(self.login_url, {
-            'username': '',  # Campo vacÃ­o
+            'username': '',  # Campo vacio
             'password': '',
             'remember_me': False
         })
@@ -688,10 +676,10 @@ class RegistroViewCoverageTest(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_registro_formulario_invalido(self):
-        """Registro con formulario invÃ¡lido muestra errores"""
+        """Registro con formulario inva¡lido muestra errores"""
         response = self.client.post(self.registro_url, {
             'username': 'user1',
-            'email': 'invalidemail',  # Email invÃ¡lido
+            'email': 'invalidemail',  # Email inva¡lido
             'password1': 'pass',
             'password2': 'pass'
         })
@@ -713,12 +701,12 @@ class PerfilViewCoverageTest(TestCase):
         )
 
     def test_perfil_post_formulario_invalido(self):
-        """POST con formulario invÃ¡lido muestra errores"""
+        """POST con formulario inva¡lido muestra errores"""
         self.client.login(username='user1', password='testpass123')
         response = self.client.post(self.perfil_url, {
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
-            'telefono': '123',  # TelÃ©fono muy corto
+            'last_name': 'Pa©rez',
+            'telefono': '123',  # Tela©fono muy corto
             'matricula': ''
         })
         # May show form errors or redirect
@@ -774,15 +762,15 @@ class EditarUsuarioViewCoverageTest(TestCase):
         )
 
     def test_editar_formulario_invalido(self):
-        """POST con formulario invÃ¡lido muestra errores"""
+        """POST con formulario inva¡lido muestra errores"""
         self.client.login(username='admin1', password='testpass123')
         url = reverse('solicitudes_app:editar_usuario',
                       kwargs={'usuario_id': self.alumno.id})
         response = self.client.post(url, {
-            'username': '',  # Username vacÃ­o - invÃ¡lido
+            'username': '',  # Username vacio - inva¡lido
             'email': 'alumno@test.com',
             'first_name': 'Juan',
-            'last_name': 'PÃ©rez',
+            'last_name': 'Pa©rez',
             'rol': 'alumno',
             'is_active': True
         })
@@ -804,7 +792,7 @@ class EliminarUsuarioViewCoverageTest(TestCase):
         )
 
     def test_no_puede_eliminar_ultimo_admin_activo(self):
-        """No se puede eliminar el Ãºltimo administrador activo"""
+        """No se puede eliminar el aºltimo administrador activo"""
         self.client.login(username='admin1', password='testpass123')
         url = reverse('solicitudes_app:eliminar_usuario',
                       kwargs={'usuario_id': self.admin.id})
@@ -830,7 +818,7 @@ class CambiarPasswordViewCoverageTest(TestCase):
         )
 
     def test_cambiar_password_redirige_a_perfil_si_incompleto(self):
-        """DespuÃ©s de cambiar password, redirige a perfil si estÃ¡ incompleto"""
+        """Despua©s de cambiar password, redirige a perfil si esta¡ incompleto"""
         self.client.login(username='user1', password='oldpass123')
         response = self.client.post(self.cambiar_url, {
             'old_password': 'oldpass123',
@@ -843,7 +831,7 @@ class CambiarPasswordViewCoverageTest(TestCase):
         self.assertFalse(self.usuario.debe_cambiar_password)
 
     def test_cambiar_password_formulario_invalido(self):
-        """POST con formulario invÃ¡lido muestra errores"""
+        """POST con formulario inva¡lido muestra errores"""
         self.client.login(username='user1', password='oldpass123')
         response = self.client.post(self.cambiar_url, {
             'old_password': 'wrongpassword',
