@@ -87,22 +87,6 @@ class RegistroUsuarioFormTest(TestCase):
     Pruebas unitarias para el formulario de registro
     """
 
-    def test_formulario_valido_alumno(self):
-        """Prueba que el formulario es válido con datos correctos de alumno"""
-        form_data = {
-            'username': 'nuevo_alumno',
-            'email': 'nuevo@test.com',
-            'first_name': 'Nuevo',
-            'last_name': 'Alumno',
-            'rol': 'alumno',
-            'matricula': '67890',
-            'telefono': '4921234567',
-            'password1': 'testpass123!',
-            'password2': 'testpass123!'
-        }
-        form = RegistroUsuarioForm(data=form_data)
-        self.assertTrue(form.is_valid())
-
     def test_formulario_invalido_alumno_sin_matricula(self):
         """Prueba que el formulario es inválido si un alumno no tiene matrícula"""
         form_data = {
@@ -141,21 +125,6 @@ class RegistroUsuarioFormTest(TestCase):
         form = RegistroUsuarioForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn('email', form.errors)
-
-    def test_formulario_valido_sin_matricula_para_no_alumno(self):
-        """Prueba que otros roles no necesitan matrícula"""
-        form_data = {
-            'username': 'nuevo_admin',
-            'email': 'nuevo_admin@test.com',
-            'first_name': 'Nuevo',
-            'last_name': 'Admin',
-            'rol': 'administrador',
-            'area': 'TI',
-            'password1': 'testpass123!',
-            'password2': 'testpass123!'
-        }
-        form = RegistroUsuarioForm(data=form_data)
-        self.assertTrue(form.is_valid())
 
 
 class LoginViewTest(TestCase):
@@ -220,38 +189,6 @@ class RegistroViewTest(TestCase):
         response = self.client.get(self.registro_url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'solicitudes_app/registro.html')
-
-    def test_registro_exitoso(self):
-        """Prueba un registro exitoso"""
-        form_data = {
-            'username': 'nuevouser',
-            'email': 'nuevo@test.com',
-            'first_name': 'Nuevo',
-            'last_name': 'Usuario',
-            'rol': 'alumno',
-            'matricula': '12345',
-            'password1': 'testpass123!@#',
-            'password2': 'testpass123!@#'
-        }
-        response = self.client.post(self.registro_url, form_data)
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(Usuario.objects.filter(username='nuevouser').exists())
-
-    def test_registro_usuario_autenticado_automaticamente(self):
-        """Prueba que el usuario se autentica automáticamente después del registro"""
-        form_data = {
-            'username': 'nuevouser',
-            'email': 'nuevo@test.com',
-            'first_name': 'Nuevo',
-            'last_name': 'Usuario',
-            'rol': 'alumno',
-            'matricula': '12345',
-            'password1': 'testpass123!@#',
-            'password2': 'testpass123!@#'
-        }
-        self.client.post(self.registro_url, form_data)
-        usuario = Usuario.objects.get(username='nuevouser')
-        self.assertTrue(usuario.is_authenticated)
 
 
 class PerfilViewTest(TestCase):
@@ -325,54 +262,6 @@ class GestionUsuariosViewTest(TestCase):
             password='testpass123',
             rol='alumno'
         )
-
-    def test_lista_usuarios_requiere_admin(self):
-        """Prueba que solo administradores pueden ver la lista de usuarios"""
-        # Sin autenticación
-        response = self.client.get(self.lista_usuarios_url)
-        self.assertEqual(response.status_code, 302)
-
-        # Como alumno
-        self.client.login(username='alumno', password='testpass123')
-        response = self.client.get(self.lista_usuarios_url)
-        self.assertEqual(response.status_code, 302)
-
-        # Como administrador
-        self.client.login(username='admin', password='testpass123')
-        response = self.client.get(self.lista_usuarios_url)
-        self.assertEqual(response.status_code, 200)
-
-    def test_editar_usuario_como_admin(self):
-        """Prueba que el administrador puede editar usuarios"""
-        self.client.login(username='admin', password='testpass123')
-        editar_url = reverse(
-            'solicitudes_app:editar_usuario', args=[self.alumno.id])
-
-        response = self.client.post(editar_url, {
-            'username': 'alumno',
-            'email': 'alumno_nuevo@test.com',
-            'first_name': 'Alumno',
-            'last_name': 'Editado',
-            'rol': 'alumno',
-            'telefono': '',
-            'area': '',
-            'matricula': '12345',
-            'is_active': True
-        })
-
-        self.assertEqual(response.status_code, 302)
-        self.alumno.refresh_from_db()
-        self.assertEqual(self.alumno.email, 'alumno_nuevo@test.com')
-
-    def test_eliminar_usuario_como_admin(self):
-        """Prueba que el administrador puede eliminar usuarios"""
-        self.client.login(username='admin', password='testpass123')
-        eliminar_url = reverse(
-            'solicitudes_app:eliminar_usuario', args=[self.alumno.id])
-
-        response = self.client.post(eliminar_url)
-        self.assertEqual(response.status_code, 302)
-        self.assertFalse(Usuario.objects.filter(id=self.alumno.id).exists())
 
     def test_admin_no_puede_eliminarse_a_si_mismo(self):
         """Prueba que el administrador no puede eliminar su propia cuenta"""

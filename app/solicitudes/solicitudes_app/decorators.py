@@ -5,7 +5,8 @@ from functools import wraps
 
 def rol_requerido(*roles):
     """
-    Decorador para verificar que el usuario tenga uno de los roles especificados
+    Decorador para verificar que el usuario tenga uno de los roles
+    especificados
 
     Uso:
     @rol_requerido('administrador', 'control_escolar')
@@ -60,8 +61,8 @@ def puede_crear_tipos(view_func):
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        if not request.user.is_authenticated: messages.error(request, 'Debes iniciar sesión para acceder a esta página.'); return redirect('solicitudes_app:login')
-        if not request.user.puede_crear_tipo_solicitud(): messages.error(request, 'No tienes permiso para crear tipos.'); return redirect('bienvenida')
+        if not request.user.is_authenticated: messages.error(request, 'Login requerido'); return redirect('solicitudes_app:login')  # noqa: E501, E701, E702
+        if not request.user.puede_crear_tipo_solicitud(): messages.error(request, 'Sin permiso crear tipos'); return redirect('bienvenida')  # noqa: E501, E701, E702
 
         return view_func(request, *args, **kwargs)
     return wrapper
@@ -73,8 +74,8 @@ def puede_atender_solicitudes(view_func):
     """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        if not request.user.is_authenticated: messages.error(request, 'Debes iniciar sesión para acceder a esta página.'); return redirect('solicitudes_app:login')
-        if not request.user.puede_atender_solicitudes(): messages.error(request, 'No tienes permiso para atender.'); return redirect('bienvenida')
+        if not request.user.is_authenticated: messages.error(request, 'Login requerido'); return redirect('solicitudes_app:login')  # noqa: E501, E701, E702
+        if not request.user.puede_atender_solicitudes(): messages.error(request, 'Sin permiso atender'); return redirect('bienvenida')  # noqa: E501, E701, E702
 
         return view_func(request, *args, **kwargs)
     return wrapper

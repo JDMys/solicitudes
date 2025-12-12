@@ -1116,3 +1116,198 @@ class CambiarPasswordSuccessTest(TestCase):
         usuario.refresh_from_db()
         self.assertFalse(usuario.debe_cambiar_password)
 
+
+class CoberturaMissingLinesTest(TestCase):
+    """Tests para cubrir líneas específicas faltantes en views.py"""
+
+    def setUp(self):
+        self.client = Client()
+        self.admin = Usuario.objects.create_user(
+            username='admin',
+            email='admin@test.com',
+            password='Admin123!',
+            rol='administrador',
+            is_active=True,
+            perfil_completo=True
+        )
+
+    def test_login_form_invalido_linea_63(self):
+        """Error de formulario inválido en login"""
+        response = self.client.post(reverse('solicitudes_app:login'), {
+            'username': '',  # Campo requerido vacío
+            'password': ''
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Este campo es obligatorio')
+
+    def test_editar_propio_usuario_cambiar_rol_lineas_137_138(self):
+        """Admin intenta quitarse su propio rol"""
+        self.client.login(username='admin', password='Admin123!')
+        url = reverse('solicitudes_app:editar_usuario', args=[self.admin.pk])
+        response = self.client.post(url, {
+            'username': 'admin',
+            'email': 'admin@test.com',
+            'first_name': 'Admin',
+            'last_name': 'User',
+            'telefono': '1234567890',
+            'rol': 'alumno',  # Intenta cambiar su propio rol
+            'is_active': True
+        })
+        self.assertContains(
+            response, 'No puedes quitarte tu propio rol de administrador')
+
+    def test_validar_edicion_otro_usuario_linea_154(self):
+        """Validación cuando edita a otro usuario"""
+        otro = Usuario.objects.create_user(
+            username='otro',
+            email='otro@test.com',
+            password='Pass123!',
+            rol='alumno',
+            perfil_completo=True
+        )
+        self.client.login(username='admin', password='Admin123!')
+        url = reverse('solicitudes_app:editar_usuario', args=[otro.pk])
+        # Este debería proceder sin error de edición propia
+        response = self.client.post(url, {
+            'username': 'otro',
+            'email': 'otro@test.com',
+            'first_name': 'Otro',
+            'last_name': 'Usuario',
+            'telefono': '9876543210',
+            'rol': 'control_escolar',
+            'is_active': True
+        })
+        self.assertEqual(response.status_code, 302)
+
+    def test_validar_ultimo_admin_usuario_no_admin_lineas_159_161(self):
+        """Validación cuando usuario no es admin"""
+        alumno = Usuario.objects.create_user(
+            username='alumno1',
+            email='alumno@test.com',
+            password='Pass123!',
+            rol='alumno',
+            perfil_completo=True
+        )
+        self.client.login(username='admin', password='Admin123!')
+        url = reverse('solicitudes_app:editar_usuario', args=[alumno.pk])
+        response = self.client.post(url, {
+            'username': 'alumno1',
+            'email': 'alumno@test.com',
+            'first_name': 'Alumno',
+            'last_name': 'Test',
+            'telefono': '1234567890',
+            'matricula': '12345678',
+            'rol': 'control_escolar',  # Cambio permitido (no es admin)
+            'is_active': True
+        })
+        self.assertEqual(response.status_code, 302)
+
+    def test_validar_ultimo_admin_con_otro_admin_lineas_169_179(self):
+        """Validación con múltiples admins"""
+        admin2 = Usuario.objects.create_user(
+            username='admin2',
+            email='admin2@test.com',
+            password='Pass123!',
+            rol='administrador',
+            is_active=True,
+            perfil_completo=True
+        )
+        self.client.login(username='admin', password='Admin123!')
+        url = reverse('solicitudes_app:editar_usuario', args=[admin2.pk])
+        # Con 2 admins, se permite cambiar el rol de uno
+        response = self.client.post(url, {
+            'username': 'admin2',
+            'email': 'admin2@test.com',
+            'first_name': 'Admin',
+            'last_name': 'Two',
+            'telefono': '1234567890',
+            'rol': 'control_escolar',
+            'is_active': True
+        })
+        self.assertEqual(response.status_code, 302)
+
+    def test_error_validacion_ultimo_admin_editar_lineas_208_209(self):
+        """Error al editar último admin"""
+        self.client.login(username='admin', password='Admin123!')
+        url = reverse('solicitudes_app:editar_usuario', args=[self.admin.pk])
+        response = self.client.post(url, {
+            'username': 'admin',
+            'email': 'admin@test.com',
+            'first_name': 'Admin',
+            'last_name': 'User',
+            'telefono': '1234567890',
+            'rol': 'alumno',  # Intenta cambiar rol de último admin
+            'is_active': True
+        })
+        # Puede ser cualquiera de los dos mensajes de error
+        self.assertIn(
+            response.status_code, [200, 302])
+        if response.status_code == 200:
+            content = response.content.decode('utf-8')
+            self.assertTrue(
+                'último administrador' in content or
+                'quitarte tu propio rol' in content
+            )
+
+    def test_eliminar_ultimo_admin_lineas_257_261(self):
+        """Validación eliminación último admin"""
+        self.client.login(username='admin', password='Admin123!')
+        url = reverse('solicitudes_app:eliminar_usuario',
+                      args=[self.admin.pk])
+        response = self.client.post(url)
+        # No puede eliminar su propia cuenta
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Usuario.objects.filter(pk=self.admin.pk).exists())
+
+
+class CoberturaViewsCompleta95Test(TestCase):
+
+    def setUp(self):
+        """Configuración inicial de usuarios de prueba"""
+        self.admin = Usuario.objects.create_user(
+            username='admin_test',
+            email='admin@test.com',
+            password='Admin123!',
+            first_name='Admin',
+            last_name='Test',
+            matricula='12345',
+            rol='administrador',
+            is_active=True,
+            perfil_completo=True
+        )
+        self.user = Usuario.objects.create_user(
+            username='user_test',
+            email='user@test.com',
+            password='User123!',
+            first_name='User',
+            last_name='Test',
+            matricula='54321',
+            rol='estudiante',
+            is_active=True,
+            perfil_completo=True
+        )
+
+    def test_login_con_formulario_invalido_sin_error_all(self):
+        """Formulario inválido sin error __all__"""
+        # POST con username vacío genera error de campo específico
+        response = self.client.post(reverse('solicitudes_app:login'), {
+            'username': '',  # Campo vacío
+            'password': 'Test123!',
+            'remember_me': False
+        })
+        self.assertEqual(response.status_code, 200)
+        messages_list = list(response.context['messages'])
+        self.assertTrue(any('corrige los errores' in str(m) for m in messages_list))
+
+    def test_eliminar_usuario_no_admin(self):
+        """eliminar usuario que no es admin"""
+        self.client.login(username='admin_test', password='Admin123!')
+        
+        # Eliminar usuario estudiante (no admin)
+        response = self.client.post(
+            reverse('solicitudes_app:eliminar_usuario', args=[self.user.id])
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Usuario.objects.filter(pk=self.user.pk).exists())
+
+

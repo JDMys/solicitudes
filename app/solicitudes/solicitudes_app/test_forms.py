@@ -1308,3 +1308,56 @@ class RegistroUsuarioFormPasswordValidationTest(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('password1', form.errors)
 
+
+class CoberturaMissingFormsTest(TestCase):
+    """Tests para cubrir líneas específicas faltantes en forms.py"""
+
+    def test_email_vacio_linea_69(self):
+        """Email vacío"""
+        form = RegistroUsuarioForm(data={
+            'username': 'testuser',
+            'email': '',  # Vacío
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+            'first_name': 'Test',
+            'last_name': 'User',
+            'telefono': '1234567890',
+            'rol': 'alumno',
+            'matricula': '12345678'
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('email', form.errors)
+
+    def test_email_formato_invalido_linea_75(self):
+        """Formato de email inválido"""
+        form = RegistroUsuarioForm(data={
+            'username': 'testuser',
+            'email': 'invalido@',  # Formato inválido
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+            'first_name': 'Test',
+            'last_name': 'User',
+            'telefono': '1234567890',
+            'rol': 'alumno',
+            'matricula': '12345678'
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('email', form.errors)
+
+    def test_username_vacio_linea_88(self):
+        """Username vacío"""
+        form = RegistroUsuarioForm(data={
+            'username': '',  # Vacío
+            'email': 'test@test.com',
+            'password1': 'TestPass123!',
+            'password2': 'TestPass123!',
+            'first_name': 'Test',
+            'last_name': 'User',
+            'telefono': '1234567890',
+            'rol': 'alumno',
+            'matricula': '12345678'
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('username', form.errors)
+
+
