@@ -8,3 +8,6 @@ reportlab
 matplotlib
 behave
 selenium
+coverage
+flake8
+autopep8

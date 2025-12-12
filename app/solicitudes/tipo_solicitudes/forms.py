@@ -1,6 +1,7 @@
 from django import forms
 from .models import ArchivoAdjunto, RespuestaCampo, SeguimientoSolicitud, TipoSolicitud, FormularioSolicitud, CampoFormulario, TIPO_CAMPO, Solicitud
 
+
 class FormTipoSolicitud(forms.ModelForm):
     class Meta:
         model = TipoSolicitud
@@ -30,7 +31,8 @@ class FormFormularioSolicitud(forms.ModelForm):
 class FormCampoFormulario(forms.ModelForm):
     class Meta:
         model = CampoFormulario
-        fields = ['formulario', 'nombre', 'etiqueta', 'tipo', 'requerido', 'opciones', 'cantidad_archivos', 'orden']
+        fields = ['formulario', 'nombre', 'etiqueta', 'tipo',
+                  'requerido', 'opciones', 'cantidad_archivos', 'orden']
         labels = {
             'nombre': 'Nombre interno del campo',
             'etiqueta': 'Texto visible para el usuario',
@@ -69,7 +71,8 @@ class FormCampoFormulario(forms.ModelForm):
             ).exists()
 
             if existe:
-                raise forms.ValidationError("Ese número de orden ya está en uso para este formulario.")
+                raise forms.ValidationError(
+                    "Ese número de orden ya está en uso para este formulario.")
 
         return orden
 
@@ -79,31 +82,35 @@ class FormCampoFormulario(forms.ModelForm):
         opciones = cleaned.get('opciones')
 
         if tipo == 'select' and (not opciones or opciones.strip() == ""):
-            raise forms.ValidationError("Debes agregar opciones separadas por comas para un campo select.")
+            raise forms.ValidationError(
+                "Debes agregar opciones separadas por comas para un campo select.")
 
         if tipo == 'file':
             cant = cleaned.get('cantidad_archivos')
             if not cant or cant < 1:
-                raise forms.ValidationError("Debe permitir al menos 1 archivo.")
+                raise forms.ValidationError(
+                    "Debe permitir al menos 1 archivo.")
 
         return cleaned
-
 
 
 class FormSolicitud(forms.ModelForm):
     class Meta:
         model = Solicitud
         exclude = ['usuario', 'folio', 'fecha_creacion']
-        
+
+
 class FormRespuestaCampo(forms.ModelForm):
     class Meta:
         model = RespuestaCampo
         fields = ['valor']
-        
+
+
 class FormSeguimientoSolicitud(forms.ModelForm):
     class Meta:
         model = SeguimientoSolicitud
-        fields = ['observaciones', 'estatus'] 
+        fields = ['observaciones', 'estatus']
+
 
 class FormArchivoAdjunto(forms.ModelForm):
     class Meta:
